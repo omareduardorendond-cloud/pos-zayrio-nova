@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS Central - Gorras & Ropa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+
+    <!-- Barra Superior con Logotipo -->
+    <nav class="navbar navbar-dark bg-dark mb-4 px-3 shadow d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+            <img src="{{ url_for('static', filename='zayrio_nova.jpg') }}" alt="Logo" width="40" height="40" class="rounded-circle me-2" style="object-fit: cover;">
+            <span class="navbar-brand mb-0 h1">CAPS & CLOTHING POS</span>
+        </div>
+        <div class="d-flex align-items-center">
+            <span class="text-white me-3 small">👤 <strong>{{ usuario }}</strong></span>
+            <a href="/logout" class="btn btn-outline-danger btn-sm">Cerrar Sesión</a>
+        </div>
+    </nav>
+
+    <div class="container">
+
+        <!-- Mensajes de Alerta -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="row g-4">
+            
+            <!-- COLUMNA IZQUIERDA: DAR DE ALTA MERCANCÍA -->
+            <div class="col-md-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">📦 Dar de Alta Mercancía</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="/agregar" method="POST">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Código / SKU</label>
+                                <input type="text" name="codigo" class="form-control" placeholder="Ej: GOR-001 o 7501..." required autocomplete="off">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Nombre del Artículo</label>
+                                <input type="text" name="nombre" class="form-control" placeholder="Ej: Gorra Snapback NY" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Categoría</label>
+                                <select name="categoria" class="form-select">
+                                    <option value="Gorras" selected>Gorras</option>
+                                    <option value="Playeras">Playeras</option>
+                                    <option value="Pains">Pains</option>
+                                    <option value="Pantalones">Pantalones</option>
+                                    <option value="Sudaderas">Sudaderas</option>
+                                    <option value="Tenis">Tenis</option>
+                                    <option value="Accesorios">Accesorios</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Precio ($)</label>
+                                <input type="number" step="0.01" name="precio" class="form-control" placeholder="350.00" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Stock Inicial</label>
+                                <input type="number" name="stock" class="form-control" value="10" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 fw-bold">Guardar en Servidor</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COLUMNA DERECHA: INVENTARIO Y BÚSQUEDA -->
+            <div class="col-md-8">
+                
+                <!-- BUSCADOR RÁPIDO -->
+                <div class="card shadow-sm border-0 mb-3">
+                    <div class="card-body">
+                        <form action="/dashboard" method="GET" class="input-group">
+                            <input type="text" name="q" class="form-control" placeholder="Buscar por Nombre o Código (SKU)..." value="{{ busqueda }}">
+                            <button class="btn btn-dark" type="submit">🔍 Buscar</button>
+                            {% if busqueda %}
+                                <a href="/dashboard" class="btn btn-outline-secondary">Limpiar</a>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+
+                <!-- INVENTARIO -->
+                <div class="card shadow-sm border-0 mb-4">
+                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">📋 Inventario Activo & Ventas</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover align-middle mb-0">
+                                <thead class="table-secondary">
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Artículo</th>
+                                        <th>Categoría</th>
+                                        <th>Precio</th>
+                                        <th>Stock</th>
+                                        <th class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for p in productos %}
+                                    <tr>
+                                        <td><code class="fw-bold">{{ p[1] }}</code></td>
+                                        <td><strong>{{ p[2] }}</strong></td>
+                                        <td><span class="badge bg-secondary">{{ p[3] }}</span></td>
+                                        <td class="text-success fw-bold">${{ "%.2f"|format(p[4]) }}</td>
+                                        <td>
+                                            <span class="badge {% if p[5] > 3 %}bg-success{% else %}bg-danger{% endif %}">
+                                                {{ p[5] }} pzs
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <form action="/vender/{{ p[0] }}" method="POST" class="d-inline">
+                                                <button type="submit" class="btn btn-success btn-sm fw-bold me-1">Vender 1</button>
+                                            </form>
+                                            <form action="/eliminar/{{ p[0] }}" method="POST" class="d-inline" onsubmit="return confirm('¿Estás seguro de eliminar este artículo del inventario?');">
+                                                <button type="submit" class="btn btn-danger btn-sm fw-bold">Eliminar</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">No se encontró mercancía en el inventario.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HISTORIAL DE VENTAS Y AUDITORÍA -->
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">🛒 Historial de Ventas (Auditoría de Vendedores)</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Vendedor</th>
+                                        <th>Total</th>
+                                        <th>Fecha / Hora</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for v in ventas %}
+                                    <tr>
+                                        <td>#{{ v[0] }}</td>
+                                        <td><span class="badge bg-info text-dark">{{ v[1] }}</span></td>
+                                        <td class="fw-bold text-success">${{ "%.2f"|format(v[2]) }}</td>
+                                        <td class="small text-muted">{{ v[4] }}</td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted py-3">Aún no se han registrado ventas.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

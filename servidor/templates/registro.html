@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - POS Gorras & Ropa</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-dark d-flex align-items-center justify-content-center vh-100">
+
+    <div class="card shadow-lg p-4" style="width: 420px; border-radius: 15px;">
+        <div class="text-center mb-3">
+            <img src="{{ url_for('static', filename='zayrio_nova.jpg') }}" alt="Logo Zayrio Nova" width="80" class="mb-2 rounded-circle shadow" style="object-fit: cover; height: 80px;">
+            <h4 class="fw-bold">Registrar Nuevo Usuario</h4>
+            <p class="text-muted small">Se requiere el código de autorización del administrador</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form action="/registro" method="POST">
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Nuevo Usuario</label>
+                <input type="text" name="username" class="form-control" placeholder="Nombre de usuario" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Contraseña</label>
+                <input type="password" name="password" class="form-control" placeholder="Contraseña" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold text-danger">Código de Autorización</label>
+                <input type="password" name="codigo_auth" class="form-control border-danger" placeholder="Código secreto" required>
+            </div>
+            <button type="submit" class="btn btn-success w-100 py-2 fw-bold">Registrarse</button>
+        </form>
+
+        <div class="text-center mt-3">
+            <a href="/" class="text-decoration-none small">Volver al inicio de sesión</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
